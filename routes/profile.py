@@ -1,59 +1,59 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from cachetools import TTLCache
 from services.linkedin_client import linkedin
-from typing import Optional
 
-router = APIRouter(prefix="/profile", tags=["Profile APIs"])
+router = APIRouter(prefix="/profile", tags=["Profile"])
+limiter = Limiter(key_func=get_remote_address)
+cache = TTLCache(maxsize=500, ttl=300)
 
-@router.get("/", summary="Get Profile Data")
-async def get_profile(username: str = Query(..., description="LinkedIn username")):
-    return await linkedin.get("/", params={"username": username})
+@router.get("/")
+@limiter.limit("100/minute")
+async def get_profile(request: Request, linkedin_url: str):
+    key = f"profile:{linkedin_url}"
+    if key in cache:
+        return cache[key]
+    data = await linkedin.get("/get-profile-data-by-url", params={"url": linkedin_url})
+    cache[key] = data
+    return data
 
-    @router.get("/by-url", summary="Get Profile Data By URL")
-    async def get_profile_by_url(url: str = Query(...)):
-        return await linkedin.get("/get-profile-data-by-url", params={"url": url})
+@router.get("/posts")
+@limiter.limit("100/minute")
+async def get_profile_posts(request: Request, linkedin_url: str, start: int = 0):
+    key = f"profile_posts:{linkedin_url}:{start}"
+    if key in cache:
+        return cache[key]
+    data = await linkedin.get("/get-profile-posts", params={"url": linkedin_url, "start": start})
+    cache[key] = data
+    return data
 
-        @router.get("/search", summary="Search People")
-        async def search_people(
-            keywords: Optional[str] = None,
-                start: int = 0,
-                    geo: Optional[str] = None,
-                        firstName: Optional[str] = None,
-                            lastName: Optional[str] = None,
-                                keywordTitle: Optional[str] = None,
-                                    company: Optional[str] = None,
-                                    ):
-                                        params = {k: v for k, v in locals().items() if v is not None}
-                                            return await linkedin.get("/search-people", params=params)
+@router.get("/skills")
+@limiter.limit("100/minute")
+async def get_profile_skills(request: Request, linkedin_url: str):
+    key = f"profile_skills:{linkedin_url}"
+    if key in cache:
+        return cache[key]
+    data = await linkedin.get("/get-profile-skills", params={"url": linkedin_url})
+    cache[key] = data
+    return data
 
-                                            @router.get("/activity-time", summary="Get Profile Recent Activity Time")
-                                            async def get_activity_time(username: str = Query(...)):
-                                                return await linkedin.get("/get-profile-recent-activity-time", params={"username": username})
+@router.get("/experiences")
+@limiter.limit("100/minute")
+async def get_profile_experiences(request: Request, linkedin_url: str):
+    key = f"profile_exp:{linkedin_url}"
+    if key in cache:
+        return cache[key]
+    data = await linkedin.get("/get-profile-experience", params={"url": linkedin_url})
+    cache[key] = data
+    return data
 
-                                                @router.get("/posts", summary="Get Profile Posts")
-                                                async def get_profile_posts(username: str = Query(...), start: int = 0):
-                                                    return await linkedin.get("/get-profile-posts", params={"username": username, "start": start})
-
-                                                    @router.get("/connections", summary="Get Connection and Follower Count")
-                                                    async def get_connections(username: str = Query(...)):
-                                                        return await linkedin.get("/get-profile-connections", params={"username": username})
-
-                                                        @router.get("/recommendations/received", summary="Get Received Recommendations")
-                                                        async def get_received_recommendations(username: str = Query(...)):
-                                                            return await linkedin.get("/get-received-recommendations", params={"username": username})
-
-                                                            @router.get("/recommendations/given", summary="Get Given Recommendations")
-                                                            async def get_given_recommendations(username: str = Query(...)):
-                                                                return await linkedin.get("/get-given-recommendations", params={"username": username})
-
-                                                                @router.get("/reactions", summary="Get Profile Reactions")
-                                                                async def get_reactions(username: str = Query(...), start: int = 0):
-                                                                    return await linkedin.get("/get-profile-reactions", params={"username": username, "start": start})
-
-                                                                    @router.get("/about", summary="About The Profile")
-                                                                    async def about_profile(username: str = Query(...)):
-                                                                        return await linkedin.get("/get-about-profile", params={"username": username})
-
-                                                                        @router.get("/similar", summary="Get Similar Profiles")
-                                                                        async def get_similar(username: str = Query(...)):
-                                                                            return await linkedin.get("/get-similar-profiles", params={"username": username})
-                                                                            
+@router.get("/educations")
+@limiter.limit("100/minute")
+async def get_profile_educations(request: Request, linkedin_url: str):
+    key = f"profile_edu:{linkedin_url}"
+    if key in cache:
+        return cache[key]
+    data = await linkedin.get("/get-profile-education", params={"url": linkedin_url})
+    cache[key] = data
+    return data
