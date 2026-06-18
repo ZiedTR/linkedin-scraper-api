@@ -1,15 +1,34 @@
 from pydantic_settings import BaseSettings
+from functools import lru_cache
+from typing import Literal
+
 
 class Settings(BaseSettings):
-    rapidapi_key: str = "your_rapidapi_key_here"
+    # RapidAPI
+    rapidapi_key: str = ""
     rapidapi_host: str = "linkedin-data-api.p.rapidapi.com"
     base_url: str = "https://linkedin-data-api.p.rapidapi.com"
-    cache_ttl: int = 300
+
+    # HTTP Client
+    request_timeout: float = 20.0
+    max_retries: int = 4
+    backoff_base: float = 0.5
+
+    # Cache
+    cache_ttl: int = 900
+    cache_maxsize: int = 2000
+
+    # Rate Limiting
     rate_limit: str = "100/minute"
-    api_secret_key: str = "changeme-in-production"
+
+    # Logging
+    log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
 
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
+        env_prefix = "LINKEDIN_"
 
-settings = Settings()
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
