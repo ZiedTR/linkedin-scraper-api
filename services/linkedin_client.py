@@ -10,8 +10,6 @@ settings = get_settings()
 
 
 class TTLCache:
-    """Cache memoire LRU avec expiration TTL"""
-
     def __init__(self, maxsize: int, ttl: int):
         self.maxsize = maxsize
         self.ttl = ttl
@@ -136,6 +134,13 @@ class LinkedInClient:
 
         self.metrics["errors"] += 1
         raise LinkedInAPIError(f"Request failed after {settings.max_retries} attempts", status=503)
+
+    # Convenience methods used by routes
+    async def get(self, path: str, params: dict | None = None, use_cache: bool = True) -> Any:
+        return await self.request(path, method="GET", params=params, use_cache=use_cache)
+
+    async def post(self, path: str, json_body: dict | None = None) -> Any:
+        return await self.request(path, method="POST", json_body=json_body, use_cache=False)
 
     async def close(self):
         if self._client and not self._client.is_closed:
