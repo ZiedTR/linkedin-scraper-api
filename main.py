@@ -74,6 +74,16 @@ for router in (profile, company, jobs, posts, articles, location,
         app.include_router(router.router)
 
 
+@app.get("/", tags=["System"])
+async def root():
+        return {
+                    "name": "LinkedIn Pro API",
+                    "version": "4.0.0",
+                    "docs": "/docs",
+                    "health": "/health",
+        }
+
+
 @app.get("/health", tags=["System"])
 async def health():
         return {
