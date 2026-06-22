@@ -1,0 +1,4 @@
+LINKEDIN_RAPIDAPI_KEY=your_rapidapi_key_here
+LINKEDIN_RAPIDAPI_HOST=linkedin-data-api.p.rapidapi.com
+LINKEDIN_CACHE_TTL=900
+LINKEDIN_RATE_LIMIT=100/minute
