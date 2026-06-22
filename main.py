@@ -11,6 +11,7 @@ import sys
 
 from config import get_settings
 from routes import profile, company, jobs, posts, articles, location
+from routes import ai, network, batch, webhooks
 from services.linkedin_client import linkedin, LinkedInAPIError
 
 logging.basicConfig(
@@ -26,8 +27,9 @@ limiter = Limiter(key_func=get_remote_address, default_limits=[settings.rate_lim
 @asynccontextmanager
 async def lifespan(app: FastAPI):
         logger.info("=" * 60)
-        logger.info("LinkedIn Scraper API v3.2 STARTED")
+        logger.info("LinkedIn Pro API v4.0 STARTED")
         logger.info("Cache TTL: %ds | Retries: %d | Rate: %s", settings.cache_ttl, settings.max_retries, settings.rate_limit)
+        logger.info("NEW: AI Scoring | Batch | Webhooks | Network Graph")
         logger.info("=" * 60)
         yield
         logger.info("Shutting down...")
@@ -35,9 +37,21 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-        title="LinkedIn Scraper API - v3.2 Complete",
-        description="60+ endpoints: profiles, companies, jobs, posts, articles, locations | Cache TTL | Retry/Backoff | Prometheus",
-        version="3.2.0",
+        title="LinkedIn Pro API - v4.0",
+        description="""
+## LinkedIn Data API with AI Enrichment
+
+The only LinkedIn API with:
+- **AI Influence Score** — score 0-100 per profile
+- **Career Trajectory** — predict next job move
+- **Sentiment Analysis** — tone of recent posts
+- **Batch Enrichment** — 100 profiles in 1 request
+- **Real-Time Webhooks** — alerts on job/headline changes
+- **Network Graph** — proximity score, org chart reconstruction
+
+Plus all classic endpoints: profiles, companies, jobs, posts, articles.
+        """,
+        version="4.0.0",
         lifespan=lifespan,
         docs_url="/docs",
         redoc_url="/redoc",
@@ -55,7 +69,8 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 Instrumentator().instrument(app).expose(app)
 
-for router in (profile, company, jobs, posts, articles, location):
+for router in (profile, company, jobs, posts, articles, location,
+               ai, network, batch, webhooks):
         app.include_router(router.router)
 
 
@@ -63,14 +78,18 @@ for router in (profile, company, jobs, posts, articles, location):
 async def health():
         return {
                     "status": "healthy",
-                    "version": "3.2.0",
-                    "endpoints": {"total": 60, "get": 48, "post": 12},
+                    "version": "4.0.0",
+                    "endpoints": {"total": 75, "get": 58, "post": 17},
                     "features": {
                                     "cache_enabled": True,
                                     "cache_ttl_seconds": settings.cache_ttl,
                                     "cache_strategy": "LRU with TTL",
                                     "retry_enabled": True,
                                     "max_retries": settings.max_retries,
+                                    "ai_enrichment": True,
+                                    "batch_processing": True,
+                                    "webhooks": True,
+                                    "network_graph": True,
                     },
                     "metrics": {
                                     "requests_total": linkedin.metrics["requests"],
