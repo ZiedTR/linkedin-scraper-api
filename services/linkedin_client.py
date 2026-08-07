@@ -118,6 +118,17 @@ class LinkedInClient:
                 if resp.status_code == 401:
                     raise LinkedInAPIError("Authentication failed - check your RapidAPI key", status=401)
 
+                if resp.status_code == 403:
+                    raise LinkedInAPIError(
+                        "Access denied by RapidAPI - your LINKEDIN_RAPIDAPI_KEY is missing, invalid, "
+                        "or you are not subscribed to the 'linkedin-data-api' plan on rapidapi.com",
+                        status=403,
+                    )
+
+                if resp.status_code == 400:
+                    detail = resp.text[:200]
+                    raise LinkedInAPIError(f"Bad request to LinkedIn API: {detail}", status=400)
+
                 resp.raise_for_status()
                 data = resp.json()
 

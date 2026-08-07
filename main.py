@@ -30,6 +30,11 @@ async def lifespan(app: FastAPI):
         logger.info("LinkedIn Pro API v4.0 STARTED")
         logger.info("Cache TTL: %ds | Retries: %d | Rate: %s", settings.cache_ttl, settings.max_retries, settings.rate_limit)
         logger.info("NEW: AI Scoring | Batch | Webhooks | Network Graph")
+        if not settings.rapidapi_key:
+            logger.warning(
+                "LINKEDIN_RAPIDAPI_KEY is not set - all upstream calls will fail. "
+                "Copy .env.example to .env and add your RapidAPI key."
+            )
         logger.info("=" * 60)
         yield
         logger.info("Shutting down...")
@@ -89,6 +94,7 @@ async def health():
         return {
                     "status": "healthy",
                     "version": "4.0.0",
+                    "rapidapi_key_configured": bool(settings.rapidapi_key),
                     "endpoints": {"total": 75, "get": 58, "post": 17},
                     "features": {
                                     "cache_enabled": True,
