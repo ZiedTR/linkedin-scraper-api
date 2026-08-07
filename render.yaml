@@ -1,0 +1,15 @@
+# Render Blueprint (optional). Applies only if you create a Blueprint from it;
+# a manually-created Render service ignores this file. Render injects $PORT and
+# routes its health check to it — the Dockerfile binds $PORT accordingly.
+services:
+  - type: web
+    name: linkedin-scraper-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      # Secret — do NOT commit. Set the value in the Render dashboard.
+      - key: LINKEDIN_RAPIDAPI_KEY
+        sync: false
+      - key: LINKEDIN_RAPIDAPI_HOST
+        value: linkedin-data-api.p.rapidapi.com

@@ -31,6 +31,30 @@ This service is a proxy/enrichment layer on top of the [linkedin-data-api](https
 
 4. **Verify:** open <http://localhost:8000/health> — `rapidapi_key_configured` must be `true`. Interactive docs are at <http://localhost:8000/docs>.
 
+## Deploy on Render (GitHub → Render → RapidAPI)
+
+This service is meant to be hosted (e.g. on Render) and then published as an API
+on RapidAPI, which proxies requests to the hosted URL. Two things are essential:
+
+1. **Bind `$PORT`.** Render injects a `PORT` env var and routes its health check
+   to it. The Dockerfile already binds `${PORT:-8000}` — do not hardcode a port.
+2. **Set the upstream key in Render, not `.env`.** `.env` is git-ignored and never
+   deployed. In the Render service → **Environment**, add:
+   - `LINKEDIN_RAPIDAPI_KEY` = your RapidAPI key (secret)
+   - `LINKEDIN_RAPIDAPI_HOST` = `linkedin-data-api.p.rapidapi.com`
+
+Set the Render **Health Check Path** to `/health`. After deploy, open
+`https://<your-service>.onrender.com/health` and confirm
+`"rapidapi_key_configured": true`.
+
+> Note: on Render's free plan the service sleeps after inactivity; the first
+> request cold-starts (~30–50s), which can make RapidAPI's first health probe
+> time out. Retry, or use a paid plan to keep it warm.
+
+When you publish this on RapidAPI, RapidAPI forwards requests to the Render URL
+and adds an `X-RapidAPI-Proxy-Secret` header. Validating it is optional hardening,
+not required for the API to function.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
