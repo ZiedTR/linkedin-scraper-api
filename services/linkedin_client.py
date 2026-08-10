@@ -78,7 +78,7 @@ class LinkedInClient:
     def client(self) -> httpx.AsyncClient:
         if self._client is None or self._client.is_closed:
             self._client = httpx.AsyncClient(
-                base_url=settings.base_url,
+                base_url=settings.resolved_base_url,
                 timeout=settings.request_timeout,
                 headers={
                     "x-rapidapi-key": settings.rapidapi_key,

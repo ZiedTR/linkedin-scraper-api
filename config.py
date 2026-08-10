@@ -10,10 +10,16 @@ class Settings(BaseSettings):
     # the routes. Enrichment endpoints (/enrich/*) work regardless of provider.
     provider: str = "rapidapi_generic"
 
-    # RapidAPI
+    # RapidAPI. Set `rapidapi_host` (and key); base_url auto-derives from it, so
+    # switching provider = change host + provider only. Set base_url explicitly
+    # to override (e.g. a non-RapidAPI licensed provider).
     rapidapi_key: str = ""
     rapidapi_host: str = "linkedin-data-api.p.rapidapi.com"
-    base_url: str = "https://linkedin-data-api.p.rapidapi.com"
+    base_url: str = ""
+
+    @property
+    def resolved_base_url(self) -> str:
+        return self.base_url or f"https://{self.rapidapi_host}"
 
     # HTTP Client
     request_timeout: float = 20.0
