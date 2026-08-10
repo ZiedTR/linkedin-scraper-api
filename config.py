@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     # at any RapidAPI LinkedIn provider today (set host + base_url + key), or a
     # licensed provider (Coresignal / People Data Labs) later, without touching
     # the routes. Enrichment endpoints (/enrich/*) work regardless of provider.
-    provider: str = "rapidapi_generic"
+    provider: str = "pdl"
 
     # RapidAPI. Set `rapidapi_host` (and key); base_url auto-derives from it, so
     # switching provider = change host + provider only. Set base_url explicitly
