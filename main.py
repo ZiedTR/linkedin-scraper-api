@@ -97,6 +97,8 @@ async def health():
                     "status": "healthy",
                     "version": "4.0.0",
                     "rapidapi_key_configured": bool(settings.rapidapi_key),
+                    "provider": settings.provider,
+                    "upstream": settings.resolved_base_url,
                     "endpoints": {"total": 75, "get": 58, "post": 17},
                     "features": {
                                     "cache_enabled": True,
