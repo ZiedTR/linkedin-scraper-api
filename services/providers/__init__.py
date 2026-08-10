@@ -25,6 +25,9 @@ def get_provider() -> LinkedInProvider:
     if name == "fresh":
         from .fresh import FreshProvider
         return FreshProvider()
+    if name in ("pdl", "peopledatalabs", "people_data_labs"):
+        from .pdl import PDLProvider
+        return PDLProvider()
     if name in ("rapidapi_generic", "rapidapi", "generic", "rockapis"):
         from .rapidapi_generic import RapidApiGenericProvider
         return RapidApiGenericProvider()

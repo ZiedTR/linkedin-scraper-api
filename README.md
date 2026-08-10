@@ -40,10 +40,18 @@ regardless of provider (they take caller-supplied data).
 
 Select with `LINKEDIN_PROVIDER`:
 
-| Value | Upstream | Set also |
-|---|---|---|
-| `rapidapi_generic` (default) | classic `linkedin-data-api`-style endpoints | `LINKEDIN_BASE_URL`, `LINKEDIN_RAPIDAPI_HOST`, `LINKEDIN_RAPIDAPI_KEY` |
-| `fresh` | Fresh LinkedIn Profile Data (RapidAPI) | host/base_url `fresh-linkedin-profile-data.p.rapidapi.com`, key |
+| Value | Upstream | Cost | Set also |
+|---|---|---|---|
+| `pdl` | People Data Labs (Person Enrichment) | **Free** 100/mo | `LINKEDIN_PDL_API_KEY` (free, no card) |
+| `rapidapi_generic` (default) | classic `linkedin-data-api`-style endpoints | varies | `LINKEDIN_RAPIDAPI_HOST`, `LINKEDIN_RAPIDAPI_KEY` |
+| `fresh` | Fresh LinkedIn Profile Data (RapidAPI) | paid (~$10/mo) | host `fresh-linkedin-profile-data.p.rapidapi.com`, key |
+
+**Recommended free start:** `pdl`. Get a free key at peopledatalabs.com (100
+lookups/month, no card), set `LINKEDIN_PROVIDER=pdl` and `LINKEDIN_PDL_API_KEY`.
+PDL returns licensed dataset records (name, title, experience, education, skills,
+location) — reliable, but no follower counts or posts, so those enrichment
+components degrade gracefully. Reselling raw PDL records needs a PDL license; the
+free tier is for testing / your own use.
 
 > The original `linkedin-data-api` (rockapis) was discontinued. To restore live
 > data, subscribe to a working provider and point these vars at it. For a paid,
