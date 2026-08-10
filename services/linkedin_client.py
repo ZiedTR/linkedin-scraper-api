@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import re
 import time
 from typing import Any, Optional
 import httpx
@@ -7,6 +8,22 @@ from config import get_settings
 
 logger = logging.getLogger("linkedin.client")
 settings = get_settings()
+
+# Public identifier (vanity slug) in a LinkedIn profile/company/school URL,
+# e.g. https://www.linkedin.com/in/williamhgates/ -> "williamhgates".
+_SLUG_RE = re.compile(r"linkedin\.com/(?:in|company|school|pub)/([^/?#]+)", re.IGNORECASE)
+
+
+def linkedin_username(url: str | None) -> str | None:
+    """Extract the LinkedIn public identifier from a profile/company URL.
+
+    Returns None for URLs without a vanity slug (article/pulse/post URLs),
+    so callers can leave those requests untouched.
+    """
+    if not url:
+        return None
+    match = _SLUG_RE.search(url)
+    return match.group(1) if match else None
 
 
 class TTLCache:
@@ -85,6 +102,16 @@ class LinkedInClient:
         json_body: dict | None = None,
         use_cache: bool = True,
     ) -> Any:
+        # The upstream linkedin-data-api keys its profile/company sub-resource
+        # endpoints (posts, skills, experience, employees, ...) on the public
+        # identifier `username`, not on the full `url`. Callers pass a URL, so
+        # derive `username` from it and send both: the `*-by-url` endpoints use
+        # `url` and ignore the extra param, the rest finally get `username`.
+        if params and params.get("url") and "username" not in params:
+            slug = linkedin_username(params["url"])
+            if slug:
+                params = {**params, "username": slug}
+
         key = self._cache_key(method, path, params, json_body)
         if use_cache and method == "GET":
             cached = await self._cache.get(key)
@@ -117,6 +144,17 @@ class LinkedInClient:
 
                 if resp.status_code == 401:
                     raise LinkedInAPIError("Authentication failed - check your RapidAPI key", status=401)
+
+                if resp.status_code == 403:
+                    raise LinkedInAPIError(
+                        "Access denied by RapidAPI - your LINKEDIN_RAPIDAPI_KEY is missing, invalid, "
+                        "or you are not subscribed to the 'linkedin-data-api' plan on rapidapi.com",
+                        status=403,
+                    )
+
+                if resp.status_code == 400:
+                    detail = resp.text[:200]
+                    raise LinkedInAPIError(f"Bad request to LinkedIn API: {detail}", status=400)
 
                 resp.raise_for_status()
                 data = resp.json()
