@@ -11,7 +11,7 @@ import sys
 
 from config import get_settings
 from routes import profile, company, jobs, posts, articles, location
-from routes import ai, network, batch, webhooks
+from routes import ai, network, batch, webhooks, enrich
 from services.linkedin_client import linkedin, LinkedInAPIError
 
 logging.basicConfig(
@@ -75,7 +75,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 Instrumentator().instrument(app).expose(app)
 
 for router in (profile, company, jobs, posts, articles, location,
-               ai, network, batch, webhooks):
+               ai, network, batch, webhooks, enrich):
         app.include_router(router.router)
 
 
