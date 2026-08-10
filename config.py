@@ -21,6 +21,10 @@ class Settings(BaseSettings):
     def resolved_base_url(self) -> str:
         return self.base_url or f"https://{self.rapidapi_host}"
 
+    # People Data Labs (provider=pdl). Free tier: 100 lookups/month, no card.
+    pdl_api_key: str = ""
+    pdl_base_url: str = ""
+
     # HTTP Client
     request_timeout: float = 20.0
     max_retries: int = 4
