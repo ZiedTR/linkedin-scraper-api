@@ -4,6 +4,12 @@ from typing import Literal
 
 
 class Settings(BaseSettings):
+    # Data provider selection. The upstream data source is pluggable: point it
+    # at any RapidAPI LinkedIn provider today (set host + base_url + key), or a
+    # licensed provider (Coresignal / People Data Labs) later, without touching
+    # the routes. Enrichment endpoints (/enrich/*) work regardless of provider.
+    provider: str = "rapidapi_generic"
+
     # RapidAPI
     rapidapi_key: str = ""
     rapidapi_host: str = "linkedin-data-api.p.rapidapi.com"
