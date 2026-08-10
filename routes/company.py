@@ -3,6 +3,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from cachetools import TTLCache
 from services.linkedin_client import linkedin
+from services.providers import get_provider
 
 router = APIRouter(prefix="/company", tags=["Company"])
 limiter = Limiter(key_func=get_remote_address)
@@ -14,7 +15,7 @@ async def get_company(request: Request, linkedin_url: str):
     key = f"company:{linkedin_url}"
     if key in cache:
         return cache[key]
-    data = await linkedin.get("/get-company-details", params={"url": linkedin_url})
+    data = await get_provider().company(linkedin_url)
     cache[key] = data
     return data
 

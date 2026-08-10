@@ -13,6 +13,7 @@ from config import get_settings
 from routes import profile, company, jobs, posts, articles, location
 from routes import ai, network, batch, webhooks, enrich
 from services.linkedin_client import linkedin, LinkedInAPIError
+from services.providers import get_provider, ProviderError
 
 logging.basicConfig(
         level=logging.INFO,
@@ -38,6 +39,7 @@ async def lifespan(app: FastAPI):
         logger.info("=" * 60)
         yield
         logger.info("Shutting down...")
+        await get_provider().close()
         await linkedin.close()
 
 
@@ -123,6 +125,14 @@ async def linkedin_error_handler(request: Request, exc: LinkedInAPIError):
         return JSONResponse(
                     status_code=exc.status,
                     content={"success": False, "message": str(exc), "error_type": "LinkedInAPIError"}
+        )
+
+
+@app.exception_handler(ProviderError)
+async def provider_error_handler(request: Request, exc: ProviderError):
+        return JSONResponse(
+                    status_code=exc.status,
+                    content={"success": False, "message": str(exc), "error_type": "ProviderError"}
         )
 
 

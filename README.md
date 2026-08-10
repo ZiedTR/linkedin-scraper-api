@@ -31,6 +31,31 @@ This service is a proxy/enrichment layer on top of the [linkedin-data-api](https
 
 4. **Verify:** open <http://localhost:8000/health> — `rapidapi_key_configured` must be `true`. Interactive docs are at <http://localhost:8000/docs>.
 
+## Switching the data provider
+
+The upstream data source is pluggable behind a `LinkedInProvider` interface
+(`services/providers/`), and routes return a **canonical** shape, so switching
+providers is a config change — not a code change. The `/enrich/*` endpoints work
+regardless of provider (they take caller-supplied data).
+
+Select with `LINKEDIN_PROVIDER`:
+
+| Value | Upstream | Set also |
+|---|---|---|
+| `rapidapi_generic` (default) | classic `linkedin-data-api`-style endpoints | `LINKEDIN_BASE_URL`, `LINKEDIN_RAPIDAPI_HOST`, `LINKEDIN_RAPIDAPI_KEY` |
+| `fresh` | Fresh LinkedIn Profile Data (RapidAPI) | host/base_url `fresh-linkedin-profile-data.p.rapidapi.com`, key |
+
+> The original `linkedin-data-api` (rockapis) was discontinued. To restore live
+> data, subscribe to a working provider and point these vars at it. For a paid,
+> resale product, prefer a **licensed** provider (Coresignal / People Data Labs)
+> whose terms permit redistribution — reselling raw scraped LinkedIn data
+> violates LinkedIn's ToS. Adding such a provider = one new class in
+> `services/providers/` implementing `LinkedInProvider`.
+
+> The `fresh` adapter maps fields defensively; confirm one real response against
+> the Fresh playground and adjust the candidate keys in
+> `services/providers/fresh.py` if any field comes back empty.
+
 ## Deploy on Render (GitHub → Render → RapidAPI)
 
 This service is meant to be hosted (e.g. on Render) and then published as an API
